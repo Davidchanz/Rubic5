@@ -69,11 +69,6 @@
             <artifactId>UnityMath</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
-        <dependency>
-            <groupId>org.MatrixTransforms</groupId>
-            <artifactId>MatrixTransforms</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
 
         <dependency>
             <groupId>org.lwjgl</groupId>

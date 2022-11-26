@@ -1,146 +1,137 @@
 package org.example;
 
-import org.lwjgl.*;
+import engine.graphics.*;
+import engine.io.Input;
+import engine.io.Window;
+import engine.maths.Vector2f;
+import engine.maths.Vector3f;
+import engine.objects.Camera;
+import engine.objects.GameObject;
 import org.lwjgl.glfw.*;
-import org.lwjgl.opengl.*;
-import org.lwjgl.system.*;
-import org.UnityMath.*;
-import org.MatrixTransforms.*;
 
-import java.nio.*;
+// The window handle
+    public class Main implements Runnable {
+        public Thread game;
+        public Window window;
+        public Renderer renderer;
+        public Shader shader;
+        public final int WIDTH = 1200, HEIGHT = 900;
 
-import static org.lwjgl.glfw.Callbacks.*;
-import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.system.MemoryStack.*;
-import static org.lwjgl.system.MemoryUtil.*;
+        public Mesh mesh = new Mesh(new Vertex[] {
+                //Back face
+                new Vertex(new Vector3f(-0.5f,  0.5f, -0.5f), new Vector2f(0.0f, 0.0f)),
+                new Vertex(new Vector3f(-0.5f, -0.5f, -0.5f), new Vector2f(0.0f, 1.0f)),
+                new Vertex(new Vector3f( 0.5f, -0.5f, -0.5f), new Vector2f(1.0f, 1.0f)),
+                new Vertex(new Vector3f( 0.5f,  0.5f, -0.5f), new Vector2f(1.0f, 0.0f)),
 
-public class Main {
+                //Front face
+                new Vertex(new Vector3f(-0.5f,  0.5f,  0.5f), new Vector2f(0.0f, 0.0f)),
+                new Vertex(new Vector3f(-0.5f, -0.5f,  0.5f), new Vector2f(0.0f, 1.0f)),
+                new Vertex(new Vector3f( 0.5f, -0.5f,  0.5f), new Vector2f(1.0f, 1.0f)),
+                new Vertex(new Vector3f( 0.5f,  0.5f,  0.5f), new Vector2f(1.0f, 0.0f)),
 
-    // The window handle
-    private long window;
-    private Input inpute;
-    private Vector3 background = new Vector3(1f,0f,0f);
-    private Renderer renderer;
-    private Mesh mesh = new Mesh(new Vertex[] {
-            new Vertex(new Vector3(-0.5f, 0.5f, 0.0f)),
-            new Vertex(new Vector3(0.5f, 0.5f, 0.0f)),
-            new Vertex(new Vector3(0.5f, -0.5f, 0.0f)),
-            new Vertex(new Vector3(-0.5f, -0.5f, 0.0f))
-    }, new int[]{
-            0,1,2,
-            0,3,2
-    });
+                //Right face
+                new Vertex(new Vector3f( 0.5f,  0.5f, -0.5f), new Vector2f(0.0f, 0.0f)),
+                new Vertex(new Vector3f( 0.5f, -0.5f, -0.5f), new Vector2f(0.0f, 1.0f)),
+                new Vertex(new Vector3f( 0.5f, -0.5f,  0.5f), new Vector2f(1.0f, 1.0f)),
+                new Vertex(new Vector3f( 0.5f,  0.5f,  0.5f), new Vector2f(1.0f, 0.0f)),
 
-    public void run() {
-        System.out.println("Hello LWJGL " + Version.getVersion() + "!");
+                //Left face
+                new Vertex(new Vector3f(-0.5f,  0.5f, -0.5f), new Vector2f(0.0f, 0.0f)),
+                new Vertex(new Vector3f(-0.5f, -0.5f, -0.5f), new Vector2f(0.0f, 1.0f)),
+                new Vertex(new Vector3f(-0.5f, -0.5f,  0.5f), new Vector2f(1.0f, 1.0f)),
+                new Vertex(new Vector3f(-0.5f,  0.5f,  0.5f), new Vector2f(1.0f, 0.0f)),
 
-        init();
-        loop();
+                //Top face
+                new Vertex(new Vector3f(-0.5f,  0.5f,  0.5f), new Vector2f(0.0f, 0.0f)),
+                new Vertex(new Vector3f(-0.5f,  0.5f, -0.5f), new Vector2f(0.0f, 1.0f)),
+                new Vertex(new Vector3f( 0.5f,  0.5f, -0.5f), new Vector2f(1.0f, 1.0f)),
+                new Vertex(new Vector3f( 0.5f,  0.5f,  0.5f), new Vector2f(1.0f, 0.0f)),
 
-        // Free the window callbacks and destroy the window
-        glfwFreeCallbacks(window);
-        glfwDestroyWindow(window);
+                //Bottom face
+                new Vertex(new Vector3f(-0.5f, -0.5f,  0.5f), new Vector2f(0.0f, 0.0f)),
+                new Vertex(new Vector3f(-0.5f, -0.5f, -0.5f), new Vector2f(0.0f, 1.0f)),
+                new Vertex(new Vector3f( 0.5f, -0.5f, -0.5f), new Vector2f(1.0f, 1.0f)),
+                new Vertex(new Vector3f( 0.5f, -0.5f,  0.5f), new Vector2f(1.0f, 0.0f)),
+        }, new int[] {
+                //Back face
+                0, 1, 3,
+                3, 1, 2,
 
-        // Terminate GLFW and free the error callback
-        glfwTerminate();
-        glfwSetErrorCallback(null).free();
+                //Front face
+                4, 5, 7,
+                7, 5, 6,
 
-        //inpute.destroy();
-    }
+                //Right face
+                8, 9, 11,
+                11, 9, 10,
 
-    private void init() {
+                //Left face
+                12, 13, 15,
+                15, 13, 14,
 
-        inpute = new Input();
-        renderer = new Renderer();
+                //Top face
+                16, 17, 19,
+                19, 17, 18,
 
-        // Setup an error callback. The default implementation
-        // will print the error message in System.err.
-        GLFWErrorCallback.createPrint(System.err).set();
+                //Bottom face
+                20, 21, 23,
+                23, 21, 22
+        }, new Material("/textures/bricks.png"));
 
-        // Initialize GLFW. Most GLFW functions will not work before doing this.
-        if ( !glfwInit() )
-            throw new IllegalStateException("Unable to initialize GLFW");
+        public GameObject[] gameObjects = new GameObject[1000];
 
-        // Configure GLFW
-        glfwDefaultWindowHints(); // optional, the current window hints are already the default
-        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE); // the window will stay hidden after creation
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE); // the window will be resizable
+        public GameObject object = new GameObject(new Vector3f(0, 0, 0), new Vector3f(0, 0, 0), new Vector3f(1, 1, 1), mesh);
 
-        // Create the window
-        window = glfwCreateWindow(800, 600, "Hello World!", 0, 0);
-        if ( window == NULL )
-            throw new RuntimeException("Failed to create the GLFW window");
+        public Camera camera = new Camera(new Vector3f(0, 0, 0), new Vector3f(0, 0, 0));
 
-        // Setup a key callback. It will be called every time a key is pressed, repeated or released.
-        glfwSetKeyCallback(window, inpute.getKeyCallback());
-        glfwSetCursorPosCallback(window, inpute.getCursorPosCallback());
-        glfwSetMouseButtonCallback(window, inpute.getMouseButtonCallback());
-
-        // Get the thread stack and push a new frame
-        try ( MemoryStack stack = stackPush() ) {
-            IntBuffer pWidth = stack.mallocInt(1); // int*
-            IntBuffer pHeight = stack.mallocInt(1); // int*
-
-            // Get the window size passed to glfwCreateWindow
-            glfwGetWindowSize(window, pWidth, pHeight);
-
-            // Get the resolution of the primary monitor
-            GLFWVidMode vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-
-            // Center the window
-            glfwSetWindowPos(
-                    window,
-                    (vidmode.width() - pWidth.get(0)) / 2,
-                    (vidmode.height() - pHeight.get(0)) / 2
-            );
-        } // the stack frame is popped automatically
-
-        // Make the OpenGL context current
-        glfwMakeContextCurrent(window);
-        // Enable v-sync
-        glfwSwapInterval(1);
-
-        // Make the window visible
-        glfwShowWindow(window);
-    }
-
-    private void loop() {
-        // This line is critical for LWJGL's interoperation with GLFW's
-        // OpenGL context, or any context that is managed externally.
-        // LWJGL detects the context that is current in the current thread,
-        // creates the GLCapabilities instance and makes the OpenGL
-        // bindings available for use.
-        GL.createCapabilities();
-
-        // Set the clear color
-        glClearColor(background.x, background.y, background.z, 0.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        mesh.create();
-        // Run the rendering loop until the user has attempted to close
-        // the window or has pressed the ESCAPE key.
-        renderer.rendererMesh(mesh);
-        while ( !glfwWindowShouldClose(window) ) {
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
-
-            if(inpute.isKeyDown(GLFW_KEY_W))
-                System.out.println("qwerty");
-
-            if (inpute.isKeyDown(GLFW_KEY_ESCAPE))
-                glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
-
-            renderer.rendererMesh(mesh);
-
-            glfwSwapBuffers(window); // swap the color buffers
-
-            // Poll for window events. The key callback above will only be
-            // invoked during this call.
-            glfwPollEvents();
+        public void start() {
+            game = new Thread(this, "game");
+            game.start();
         }
-    }
 
-    public static void main(String[] args) {
-        new Main().run();
-    }
+        public void init() {
+            window = new Window(WIDTH, HEIGHT, "Game");
+            shader = new Shader("/shaders/mainVertex.glsl", "/shaders/mainFragment.glsl");
+            renderer = new Renderer(window, shader);
+            window.setBackgroundColor(1.0f, 0, 0);
+            window.create();
+            mesh.create();
+            shader.create();
 
+            for (int i = 0; i < gameObjects.length; i++){
+
+            }
+        }
+
+        public void run() {
+            init();
+            while (!window.shouldClose() && !Input.isKeyDown(GLFW.GLFW_KEY_ESCAPE)) {
+                update();
+                render();
+                if (Input.isKeyDown(GLFW.GLFW_KEY_F11)) window.setFullscreen(!window.isFullscreen());
+            }
+            close();
+        }
+
+        private void update() {
+            window.update();
+            camera.update();
+            //if (Input.isButtonDown(GLFW.GLFW_MOUSE_BUTTON_LEFT)) System.out.println("X: " + Input.getScrollX() + ", Y: " + Input.getScrollY());
+        }
+
+        private void render() {
+            renderer.renderMesh(object, camera);
+            window.swapBuffers();
+        }
+
+        private void close() {
+            window.destroy();
+            mesh.destroy();
+            shader.destroy();
+        }
+
+        public static void main(String[] args) {
+            new Main().start();
+        }
 }

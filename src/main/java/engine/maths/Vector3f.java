@@ -8,6 +8,11 @@ public class Vector3f {
 		this.y = y;
 		this.z = z;
 	}
+	public Vector3f(Vector3f v) {
+		this.x = v.x;
+		this.y = v.y;
+		this.z = v.z;
+	}
 	
 	public void set(float x, float y, float z) {
 		this.x = x;
@@ -94,5 +99,13 @@ public class Vector3f {
 
 	public void setZ(float z) {
 		this.z = z;
+	}
+
+	@Override
+	public String toString() {
+		return 	"["+x+","+y+","+z+"]";
+	}
+	public Vector3f neg(){
+		return new Vector3f(-x, -y, -z);
 	}
 }

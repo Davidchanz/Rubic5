@@ -25,9 +25,9 @@ public class Input {
 		};
 		
 		mouseMove = new GLFWCursorPosCallback() {
-			public void invoke(long window, double xpos, double ypos) {
-				mouseX = xpos;
-				mouseY = ypos;
+			public void invoke(long window, double newMouseX, double newMouseY) {
+				mouseX = newMouseX;
+				mouseY = newMouseY;
 			}
 		};
 		

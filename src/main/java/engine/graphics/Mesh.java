@@ -3,10 +3,7 @@ package engine.graphics;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL15;
-import org.lwjgl.opengl.GL20;
-import org.lwjgl.opengl.GL30;
+import org.lwjgl.opengl.*;
 import org.lwjgl.system.MemoryUtil;
 
 public class Mesh {
@@ -19,6 +16,7 @@ public class Mesh {
 		this.vertices = vertices;
 		this.indices = indices;
 		this.material = material;
+		create();
 	}
 	
 	public void create() {
@@ -45,6 +43,21 @@ public class Mesh {
 			textureData[i * 2 + 1] = vertices[i].getTextureCoord().getY();
 		}
 		textureBuffer.put(textureData).flip();
+
+		/////////////color
+
+		FloatBuffer colorBuffer = MemoryUtil.memAllocFloat(vertices.length * 3);
+		float[] colorData = new float[vertices.length * 3];
+		for (int i = 0; i < vertices.length; i++) {
+			colorData[i * 3] = vertices[i].getColor().getX();
+			colorData[i * 3 + 1] = vertices[i].getColor().getY();
+			colorData[i * 3 + 2] = vertices[i].getColor().getZ();
+		}
+		colorBuffer.put(colorData).flip();
+
+		cbo = storeData(colorBuffer, 1, 3);
+
+		////////////color
 		
 		tbo = storeData(textureBuffer, 2, 2);
 		
